@@ -14,23 +14,23 @@ class Category
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $name = null;
 
     #[ORM\Column]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $slug = null;
 
     /**
@@ -40,10 +40,17 @@ class Category
     #[Groups(["category:read"])]
     private Collection $articles;
 
+    /**
+     * @var Collection<int, SubCategory>
+     */
+    #[ORM\OneToMany(targetEntity: SubCategory::class, mappedBy: 'category')]
+    private Collection $subCategories;
+
 
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->subCategories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -119,6 +126,36 @@ class Category
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SubCategory>
+     */
+    public function getSubCategories(): Collection
+    {
+        return $this->subCategories;
+    }
+
+    public function addSubCategory(SubCategory $subCategory): static
+    {
+        if (!$this->subCategories->contains($subCategory)) {
+            $this->subCategories->add($subCategory);
+            $subCategory->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubCategory(SubCategory $subCategory): static
+    {
+        if ($this->subCategories->removeElement($subCategory)) {
+            // set the owning side to null (unless already changed)
+            if ($subCategory->getCategory() === $this) {
+                $subCategory->setCategory(null);
+            }
+        }
 
         return $this;
     }
