@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route(path: "/api", name: "api_")]
 class CategoryController extends AbstractController
@@ -27,11 +28,12 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/categories/create', name: 'category_create')]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em): JsonResponse
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, SluggerInterface $slugger): JsonResponse
     {
         $category = $serializer->deserialize($request->getContent(), Category::class, "json");
 
-        $category->setCreatedAt(new DateTimeImmutable());
+        $category->setCreatedAt(new DateTimeImmutable())
+            ->setSlug($slugger->slug($category->getName())->lower());
 
         $em->persist($category);
         $em->flush();

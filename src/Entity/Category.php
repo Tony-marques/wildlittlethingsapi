@@ -29,12 +29,17 @@ class Category
     #[Groups(['article:read', "category:read"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(length: 255)]
+    #[Groups(['article:read', "category:read"])]
+    private ?string $slug = null;
+
     /**
      * @var Collection<int, article>
      */
     #[ORM\ManyToMany(targetEntity: article::class, inversedBy: 'categories')]
     #[Groups(["category:read"])]
     private Collection $articles;
+
 
     public function __construct()
     {
@@ -102,6 +107,18 @@ class Category
     public function removeArticle(article $article): static
     {
         $this->articles->removeElement($article);
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $this->slug = $slug;
 
         return $this;
     }
