@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
+use App\Repository\CategoryRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -25,13 +27,13 @@ class ArticleController extends AbstractController
     {
         $articles = $articleRepository->findBy([], ["createdAt" => "DESC"]);
 
-        $articlesJson = $serializer->serialize($articles, "json");
+        $articlesJson = $serializer->serialize($articles, "json", ['groups' => ['article:read']]);
 
         return new JsonResponse($articlesJson, Response::HTTP_OK, [], true);
     }
 
     #[Route(path: "/articles/create", name: "article_create")]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, SluggerInterface $slugger)
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, SluggerInterface $slugger, CategoryRepository $categoryRepository, LoggerInterface $logger)
     {
         // $article = $serializer->deserialize($request->getContent(), Article::class, "json");
 
@@ -40,12 +42,19 @@ class ArticleController extends AbstractController
         // dd($request->files->has('mainImage1'));
 
         $data = $request->request->all();
+        // $data = $request->toArray();
+        $logger->info('Données reçues : ' . json_encode($data)); // Enregistre les
 
         $article = new Article();
         $article->setTitle($data['title'] ?? '');
         $article->setDescription($data['description'] ?? '');
         $article->setContent($data['content'] ?? '');
         $article->setDestination($data['destination'] ?? '');
+
+        $category = $categoryRepository->findOneBy(["name" => $data["category"]]);
+
+        $article->addCategory($category);
+
 
         if ($request->files->has('mainImage1')) {
             $mainImage1File = $request->files->get('mainImage1');
@@ -98,9 +107,8 @@ class ArticleController extends AbstractController
         $em->persist($article);
         $em->flush();
 
-        $articleJson = $serializer->serialize($article, "json", []);
+        $articleJson = $serializer->serialize($article, "json", ['groups' => ['article:read']]);
 
         return new JsonResponse($articleJson, Response::HTTP_CREATED, [], true);
-        return new JsonResponse(null, 200);
     }
 }

@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 #[UniqueEntity("title", "Le titre doit être unique")]
@@ -16,40 +17,51 @@ class Article
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['article:read', "category:read"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['article:read', "category:read"])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['article:read', "category:read"])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['article:read', "category:read"])]
     private ?string $content = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['article:read', "category:read"])]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['article:read', "category:read"])]
     private ?string $destination = null;
 
     #[ORM\Column]
+    #[Groups(['article:read', "category:read"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['article:read', "category:read"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(length: 255)]
+    #[Groups(['article:read', "category:read"])]
+    private ?string $mainImage1 = null;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(['article:read', "category:read"])]
+    private ?string $mainImage2 = null;
+    
     /**
      * @var Collection<int, Category>
      */
     #[ORM\ManyToMany(targetEntity: Category::class, mappedBy: 'articles')]
+    #[Groups(['article:read'])]
     private Collection $categories;
-
-    #[ORM\Column(length: 255)]
-    private ?string $mainImage1 = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $mainImage2 = null;
 
     public function __construct()
     {
