@@ -33,12 +33,12 @@ class Category
     #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $slug = null;
 
-    /**
-     * @var Collection<int, article>
-     */
-    #[ORM\ManyToMany(targetEntity: article::class, inversedBy: 'categories')]
-    #[Groups(["category:read"])]
-    private Collection $articles;
+    // /**
+    //  * @var Collection<int, article>
+    //  */
+    // #[ORM\ManyToMany(targetEntity: article::class, inversedBy: 'categories')]
+    // #[Groups(["category:read"])]
+    // private Collection $articles;
 
     /**
      * @var Collection<int, SubCategory>
@@ -47,10 +47,17 @@ class Category
     #[Groups(["category:read"])]
     private Collection $subCategories;
 
+    /**
+     * @var Collection<int, Article>
+     */
+    #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'category', orphanRemoval: true)]
+    #[Groups(["category:read"])]
+    private Collection $articles;
+
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
+        // $this->articles = new ArrayCollection();
         $this->subCategories = new ArrayCollection();
     }
 
@@ -95,29 +102,29 @@ class Category
         return $this;
     }
 
-    /**
-     * @return Collection<int, article>
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
+    // /**
+    //  * @return Collection<int, article>
+    //  */
+    // public function getArticles(): Collection
+    // {
+    //     return $this->articles;
+    // }
 
-    public function addArticle(article $article): static
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles->add($article);
-        }
+    // public function addArticle(article $article): static
+    // {
+    //     if (!$this->articles->contains($article)) {
+    //         $this->articles->add($article);
+    //     }
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
-    public function removeArticle(article $article): static
-    {
-        $this->articles->removeElement($article);
+    // public function removeArticle(article $article): static
+    // {
+    //     $this->articles->removeElement($article);
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function getSlug(): ?string
     {
@@ -155,6 +162,36 @@ class Category
             // set the owning side to null (unless already changed)
             if ($subCategory->getCategory() === $this) {
                 $subCategory->setCategory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Article>
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): static
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles->add($article);
+            $article->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): static
+    {
+        if ($this->articles->removeElement($article)) {
+            // set the owning side to null (unless already changed)
+            if ($article->getCategory() === $this) {
+                $article->setCategory(null);
             }
         }
 

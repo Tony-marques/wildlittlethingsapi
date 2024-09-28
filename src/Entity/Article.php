@@ -56,20 +56,25 @@ class Article
     #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $mainImage2 = null;
 
-    /**
-     * @var Collection<int, Category>
-     */
-    #[ORM\ManyToMany(targetEntity: Category::class, mappedBy: 'articles')]
-    #[Groups(['article:read'])]
-    private Collection $categories;
+    // /**
+    //  * @var Collection<int, Category>
+    //  */
+    // #[ORM\ManyToMany(targetEntity: Category::class, mappedBy: 'articles')]
+    // #[Groups(['article:read'])]
+    // private Collection $categories;
 
     #[ORM\ManyToOne(inversedBy: 'articles')]
     #[Groups(['article:read', "subcategory:read"])]
     private ?subcategory $subCategory = null;
 
+    #[ORM\ManyToOne(inversedBy: 'articles')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['article:read'])]
+    private ?category $category = null;
+
     public function __construct()
     {
-        $this->categories = new ArrayCollection();
+        // $this->categories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -161,32 +166,32 @@ class Article
         return $this;
     }
 
-    /**
-     * @return Collection<int, Category>
-     */
-    public function getCategories(): Collection
-    {
-        return $this->categories;
-    }
+    // /**
+    //  * @return Collection<int, Category>
+    //  */
+    // public function getCategories(): Collection
+    // {
+    //     return $this->categories;
+    // }
 
-    public function addCategory(Category $category): static
-    {
-        if (!$this->categories->contains($category)) {
-            $this->categories->add($category);
-            $category->addArticle($this);
-        }
+    // public function addCategory(Category $category): static
+    // {
+    //     if (!$this->categories->contains($category)) {
+    //         $this->categories->add($category);
+    //         $category->addArticle($this);
+    //     }
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
-    public function removeCategory(Category $category): static
-    {
-        if ($this->categories->removeElement($category)) {
-            $category->removeArticle($this);
-        }
+    // public function removeCategory(Category $category): static
+    // {
+    //     if ($this->categories->removeElement($category)) {
+    //         $category->removeArticle($this);
+    //     }
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function getMainImage1(): ?string
     {
@@ -220,6 +225,18 @@ class Article
     public function setSubCategory(?subcategory $subCategory): static
     {
         $this->subCategory = $subCategory;
+
+        return $this;
+    }
+
+    public function getCategory(): ?category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?category $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }
