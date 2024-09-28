@@ -44,6 +44,7 @@ class Category
      * @var Collection<int, SubCategory>
      */
     #[ORM\OneToMany(targetEntity: SubCategory::class, mappedBy: 'category')]
+    #[Groups(["category:read"])]
     private Collection $subCategories;
 
 
