@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\SubCategoryRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -23,15 +24,27 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ArticleController extends AbstractController
 {
     #[Route(path: '/articles', name: 'articles')]
-    public function index(ArticleRepository $articleRepository, SerializerInterface $serializer, Request $request, CategoryRepository $categoryRepository): JsonResponse
+    public function index(ArticleRepository $articleRepository, SerializerInterface $serializer, Request $request, CategoryRepository $categoryRepository, SubCategoryRepository $subCategoryRepository): JsonResponse
     {
         $categoryName = $request->query->get('category');
 
         $category = $categoryRepository->findOneBy(["slug" => $categoryName]);
 
-        if($category){
-            $articlesJson = $serializer->serialize($category->getArticles(), "json", ['groups' => ['article:read']]);
-    
+        $subcategoryName = $request->query->get('subcategory');
+
+        $subcategory = $subCategoryRepository->findOneBy(["slug" => $subcategoryName]);
+
+        // dd($subcategory);
+
+        if($category) {
+            $articlesJson = $serializer->serialize($category->getArticles(), "json", ['groups' => ['article:read', "subcategory:read"]]);
+
+            return new JsonResponse($articlesJson, Response::HTTP_OK, [], true);
+        }
+
+        if($subcategory) {
+            $articlesJson = $serializer->serialize($subcategory->getArticles(), "json", ['groups' => ['article:read', "subcategory:read"]]);
+
             return new JsonResponse($articlesJson, Response::HTTP_OK, [], true);
         }
 
@@ -43,20 +56,28 @@ class ArticleController extends AbstractController
     }
 
     #[Route(path: "/articles/create", name: "article_create")]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, SluggerInterface $slugger, CategoryRepository $categoryRepository, LoggerInterface $logger)
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, SluggerInterface $slugger, CategoryRepository $categoryRepository, SubCategoryRepository $subCategoryRepository, LoggerInterface $logger)
     {
 
 
         $data = $request->request->all();
-    
+        // $logger->info("data");
+        // $logger->info($data["category"]);
+
+        $subcategory = $subCategoryRepository->findOneBy(["name" => $data["subcategory"]]);
+
+        // dd($subcategory);
 
         $article = new Article();
         $article->setTitle($data['title'] ?? '');
         $article->setDescription($data['description'] ?? '');
         $article->setContent($data['content'] ?? '');
-        $article->setDestination($data['destination'] ?? '');
+        $article->setDestination($data['destination'] ?? '')
+        ->setSubCategory($subcategory);
 
         $category = $categoryRepository->findOneBy(["name" => $data["category"]]);
+
+        // dd($category);
 
         $article->addCategory($category);
 
@@ -110,7 +131,7 @@ class ArticleController extends AbstractController
         $em->persist($article);
         $em->flush();
 
-        $articleJson = $serializer->serialize($article, "json", ['groups' => ['article:read']]);
+        $articleJson = $serializer->serialize($article, "json", ['groups' => ['article:read', "subcategory:read"]]);
 
         return new JsonResponse($articleJson, Response::HTTP_CREATED, [], true);
     }
