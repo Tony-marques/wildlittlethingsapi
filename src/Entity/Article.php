@@ -17,51 +17,55 @@ class Article
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $content = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $destination = null;
 
     #[ORM\Column]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $mainImage1 = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['article:read', "category:read"])]
+    #[Groups(['article:read', "category:read", "subcategory:read"])]
     private ?string $mainImage2 = null;
-    
+
     /**
      * @var Collection<int, Category>
      */
     #[ORM\ManyToMany(targetEntity: Category::class, mappedBy: 'articles')]
     #[Groups(['article:read'])]
     private Collection $categories;
+
+    #[ORM\ManyToOne(inversedBy: 'articles')]
+    #[Groups(['article:read', "subcategory:read"])]
+    private ?subcategory $subCategory = null;
 
     public function __construct()
     {
@@ -204,6 +208,18 @@ class Article
     public function setMainImage2(string $mainImage2): static
     {
         $this->mainImage2 = $mainImage2;
+
+        return $this;
+    }
+
+    public function getSubCategory(): ?subcategory
+    {
+        return $this->subCategory;
+    }
+
+    public function setSubCategory(?subcategory $subCategory): static
+    {
+        $this->subCategory = $subCategory;
 
         return $this;
     }
