@@ -14,23 +14,23 @@ class SubCategory
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["subcategory:read", "category:read"])]
+    #[Groups(["subcategory:read", "category:read", "article:read"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["subcategory:read", "category:read"])]
+    #[Groups(["subcategory:read", "category:read", "article:read"])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["subcategory:read", "category:read"])]
+    #[Groups(["subcategory:read", "category:read", "article:read"])]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["subcategory:read", "category:read"])]
+    #[Groups(["subcategory:read", "category:read", "article:read"])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["subcategory:read", "category:read"])]
+    #[Groups(["subcategory:read", "category:read", "article:read"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'subCategories')]
@@ -41,6 +41,7 @@ class SubCategory
      * @var Collection<int, Article>
      */
     #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'subCategory')]
+    #[Groups(["subcategory:read"])]
     private Collection $articles;
 
     public function __construct()
