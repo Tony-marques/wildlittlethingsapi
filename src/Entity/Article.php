@@ -64,7 +64,7 @@ class Article
     // private Collection $categories;
 
     #[ORM\ManyToOne(inversedBy: 'articles')]
-    #[Groups(['article:read', "subcategory:read"])]
+    #[Groups(['article:read'])]
     private ?subcategory $subCategory = null;
 
     #[ORM\ManyToOne(inversedBy: 'articles')]

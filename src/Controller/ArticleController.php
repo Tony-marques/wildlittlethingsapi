@@ -8,7 +8,6 @@ use App\Repository\CategoryRepository;
 use App\Repository\SubCategoryRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -34,16 +33,15 @@ class ArticleController extends AbstractController
 
         $subcategory = $subCategoryRepository->findOneBy(["slug" => $subcategoryName]);
 
-        // dd($subcategory);
 
         if($category) {
-            $articlesJson = $serializer->serialize($category->getArticles(), "json", ['groups' => ['article:read', "subcategory:read"]]);
+            $articlesJson = $serializer->serialize($category->getArticles(), "json", ['groups' => ['article:read']]);
 
             return new JsonResponse($articlesJson, Response::HTTP_OK, [], true);
         }
 
         if($subcategory) {
-            $articlesJson = $serializer->serialize($subcategory->getArticles(), "json", ['groups' => ['article:read', "subcategory:read"]]);
+            $articlesJson = $serializer->serialize($subcategory->getArticles(), "json", ['groups' => ['article:read', ]]);
 
             return new JsonResponse($articlesJson, Response::HTTP_OK, [], true);
         }
@@ -55,31 +53,28 @@ class ArticleController extends AbstractController
         return new JsonResponse($articlesJson, Response::HTTP_OK, [], true);
     }
 
+
     #[Route(path: "/articles/create", name: "article_create")]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, SluggerInterface $slugger, CategoryRepository $categoryRepository, SubCategoryRepository $subCategoryRepository, LoggerInterface $logger)
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, SluggerInterface $slugger, CategoryRepository $categoryRepository, SubCategoryRepository $subCategoryRepository)
     {
 
 
         $data = $request->request->all();
-        // $logger->info("data");
-        // $logger->info($data["category"]);
+
+        // dd($data);
 
         $subcategory = $subCategoryRepository->findOneBy(["name" => $data["subcategory"]]);
 
-        // dd($subcategory);
-
-        $article = new Article();
-        $article->setTitle($data['title'] ?? '');
-        $article->setDescription($data['description'] ?? '');
-        $article->setContent($data['content'] ?? '');
-        $article->setDestination($data['destination'] ?? '')
-        ->setSubCategory($subcategory);
-
         $category = $categoryRepository->findOneBy(["name" => $data["category"]]);
 
-        // dd($category);
+        $article = new Article();
+        $article->setTitle($data['title'] ?? '')
+            ->setDescription($data['description'] ?? '')
+            ->setContent($data['content'] ?? '')
+            ->setDestination($data['destination'] ?? '')
+            ->setSubCategory($subcategory)
+            ->setCategory($category);
 
-        $article->addCategory($category);
 
         if ($request->files->has('mainImage1')) {
             $mainImage1File = $request->files->get('mainImage1');
@@ -131,8 +126,21 @@ class ArticleController extends AbstractController
         $em->persist($article);
         $em->flush();
 
-        $articleJson = $serializer->serialize($article, "json", ['groups' => ['article:read', "subcategory:read"]]);
+        $articleJson = $serializer->serialize($article, "json", ['groups' => ['article:read']]);
 
         return new JsonResponse($articleJson, Response::HTTP_CREATED, [], true);
+    }
+
+    
+    #[Route(path: "/articles/{slug}")]
+    public function getArticle(string $slug, ArticleRepository $articleRepository, SerializerInterface $serializer)
+    {
+        $article = $articleRepository->findOneBySlug($slug);
+
+        // if($article) {
+            $articleJson = $serializer->serialize($article, "json", ["groups" => "article:read"]);
+
+            return new JsonResponse($articleJson, Response::HTTP_OK, [], true);
+        // }
     }
 }
