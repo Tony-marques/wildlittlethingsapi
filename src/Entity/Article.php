@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 #[UniqueEntity("title", "Le titre doit être unique")]
@@ -22,10 +23,12 @@ class Article
 
     #[ORM\Column(length: 255)]
     #[Groups(['article:read', "category:read", "subcategory:read"])]
+    #[Assert\Length(min: 5, minMessage: "Le titre doit faire au minimum 5 caractères.", max: 255, maxMessage: "Le titre doit faire au maximum 255 caractères.")]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Groups(['article:read', "category:read", "subcategory:read"])]
+    #[Assert\Length(min: 10, minMessage: "La description doit faire au minimum {{limit}} caractères.")]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -38,6 +41,7 @@ class Article
 
     #[ORM\Column(length: 255)]
     #[Groups(['article:read', "category:read", "subcategory:read"])]
+    #[Assert\Length(min: 5, minMessage: "La destination doit faire au minimum 5 caractères.", max: 255, maxMessage: "La destination doit faire au maximum 255 caractères.")]
     private ?string $destination = null;
 
     #[ORM\Column]
@@ -50,6 +54,8 @@ class Article
 
     #[ORM\Column(length: 255)]
     #[Groups(['article:read', "category:read", "subcategory:read"])]
+    // #[Assert\Image()]
+    #[Assert\NotBlank(message: "L'image 1 ne doit pas être vide")]
     private ?string $mainImage1 = null;
 
     #[ORM\Column(length: 255)]

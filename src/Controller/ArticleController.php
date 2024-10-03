@@ -63,18 +63,20 @@ class ArticleController extends AbstractController
 
         // dd($data);
 
-        $subcategory = $subCategoryRepository->findOneBy(["name" => $data["subcategory"]]);
+        $category = $categoryRepository->findOneBy(["slug" => $data["category"]]);
 
-        $category = $categoryRepository->findOneBy(["name" => $data["category"]]);
 
         $article = new Article();
         $article->setTitle($data['title'] ?? '')
             ->setDescription($data['description'] ?? '')
             ->setContent($data['content'] ?? '')
             ->setDestination($data['destination'] ?? '')
-            ->setSubCategory($subcategory)
             ->setCategory($category);
 
+        if($category->getSubCategories()->count() > 0) {
+            $subcategory = $subCategoryRepository->findOneBy(["slug" => $data["subcategory"]]);
+            $article->setSubCategory($subcategory);
+        }
 
         if ($request->files->has('mainImage1')) {
             $mainImage1File = $request->files->get('mainImage1');
@@ -93,6 +95,9 @@ class ArticleController extends AbstractController
                     return new JsonResponse(['error' => 'Une erreur est survenue lors du téléchargement de l\'image 1'], Response::HTTP_INTERNAL_SERVER_ERROR);
                 }
             }
+        } else {
+            $article->setMainImage1("");
+
         }
         if ($request->files->has('mainImage2')) {
             $mainImage2File = $request->files->get('mainImage2');
@@ -131,16 +136,16 @@ class ArticleController extends AbstractController
         return new JsonResponse($articleJson, Response::HTTP_CREATED, [], true);
     }
 
-    
+
     #[Route(path: "/articles/{slug}")]
     public function getArticle(string $slug, ArticleRepository $articleRepository, SerializerInterface $serializer)
     {
         $article = $articleRepository->findOneBySlug($slug);
 
         // if($article) {
-            $articleJson = $serializer->serialize($article, "json", ["groups" => "article:read"]);
+        $articleJson = $serializer->serialize($article, "json", ["groups" => "article:read"]);
 
-            return new JsonResponse($articleJson, Response::HTTP_OK, [], true);
+        return new JsonResponse($articleJson, Response::HTTP_OK, [], true);
         // }
     }
 }
