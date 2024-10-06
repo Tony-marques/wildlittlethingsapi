@@ -57,14 +57,11 @@ class ArticleController extends AbstractController
     #[Route(path: "/articles/create", name: "article_create")]
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, ValidatorInterface $validator, SluggerInterface $slugger, CategoryRepository $categoryRepository, SubCategoryRepository $subCategoryRepository)
     {
-
-
         $data = $request->request->all();
 
         // dd($data);
 
         $category = $categoryRepository->findOneBy(["slug" => $data["category"]]);
-
 
         $article = new Article();
         $article->setTitle($data['title'] ?? '')
@@ -97,8 +94,8 @@ class ArticleController extends AbstractController
             }
         } else {
             $article->setMainImage1("");
-
         }
+
         if ($request->files->has('mainImage2')) {
             $mainImage2File = $request->files->get('mainImage2');
             if ($mainImage2File instanceof UploadedFile) {
@@ -142,10 +139,8 @@ class ArticleController extends AbstractController
     {
         $article = $articleRepository->findOneBySlug($slug);
 
-        // if($article) {
         $articleJson = $serializer->serialize($article, "json", ["groups" => "article:read"]);
 
         return new JsonResponse($articleJson, Response::HTTP_OK, [], true);
-        // }
     }
 }
